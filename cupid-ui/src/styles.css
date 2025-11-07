@@ -1,0 +1,191 @@
+/* Base styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #001030;
+    color: white;
+    margin: 0;
+    padding: 1vw;
+}
+
+/* Button styles */
+button {
+    border: 2;
+    padding: 8px 16px;
+    margin: 4px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    transition-duration: 0.4s;
+    color: white;
+    background-color: #3f37a5;
+    border-radius: 15px;
+    border-radius: 15px;
+    border-color: #ffffff;
+}
+
+button:hover {
+    background-color: #297c97;
+}
+
+button:disabled {
+    background-color: #092b3a;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Input styles */
+input {
+    background-color: #0c2c68;
+    border: 2px solid #4ca1c6;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+input:focus {
+    outline: none;
+    border-color: #4ca1c4;
+    box-shadow: 0 0 5px rgba(76, 161, 196, 0.3);
+}
+
+input:disabled {
+    background-color: #1f2e37;
+    border-color: #2a4957;
+    cursor: not-allowed;
+}
+
+/* Card styles */
+.card {
+    background-color: #243742;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Header styles */
+h2 {
+    color: #4ca1c4;
+    margin-bottom: 24px;
+}
+
+h3 {
+    color: #3f87a5;
+    margin-bottom: 16px;
+}
+
+/* Error message styles */
+.error-message {
+    color: #ff6b6b;
+    background-color: rgba(255, 107, 107, 0.1);
+    padding: 12px;
+    border-radius: 4px;
+    margin: 8px 0;
+    border-left: 4px solid #ff6b6b;
+}
+
+/* Success message styles */
+.success-message {
+    color: #69db7c;
+    background-color: rgba(105, 219, 124, 0.1);
+    padding: 12px;
+    border-radius: 4px;
+    margin: 8px 0;
+    border-left: 4px solid #69db7c;
+}
+
+/* Grid layout */
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 24px;
+}
+
+/* List styles */
+.list-container {
+    background-color: #243742;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.list-item {
+    padding: 12px;
+    border-bottom: 1px solid #2a4957;
+    transition: background-color 0.3s ease;
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.list-item:hover {
+    background-color: #2a4957;
+}
+
+/* Loading indicator */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Network badge */
+.network-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #2a4957;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #4ca1c4;
+    margin-top: 16px;
+}
+
+/* Payment request card */
+.payment-request {
+    background-color: #243742;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 8px 0;
+    border-left: 4px solid #3f87a5;
+}
+
+.payment-request.completed {
+    border-left-color: #69db7c;
+}
+
+.payment-request.pending {
+    border-left-color: #ffd43b;
+}
+
+/* Utility classes */
+.text-small {
+    font-size: 14px;
+    color: #a8b2b9;
+}
+
+.mt-16 {
+    margin-top: 16px;
+}
+
+.mb-16 {
+    margin-bottom: 16px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .grid-container {
+        grid-template-columns: 1fr;
+    }
+
+    button {
+        width: 100%;
+        margin: 4px 0;
+    }
+}
