@@ -1,0 +1,78 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\Shreinik Jain\\Documents\\DApps\\New folder\\cupid-poc\\contracts\\CupidIDRegistry.sol": {
+      "lastModificationDate": 1762278402971,
+      "contentHash": "714283a794e5ac4a4f8f159197b01381",
+      "sourceName": "contracts/CupidIDRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "CupidIDRegistry"
+      ]
+    },
+    "C:\\Users\\Shreinik Jain\\Documents\\DApps\\New folder\\cupid-poc\\contracts\\CupidPayment.sol": {
+      "lastModificationDate": 1762278402973,
+      "contentHash": "e6a20cf1478633f80fb4d7675b7daeab",
+      "sourceName": "contracts/CupidPayment.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "CupidPayment",
+        "ICupidRegistry"
+      ]
+    }
+  }
+}
