@@ -29,16 +29,17 @@ function RegisteredIDs({ provider }) {
 
                 // Process and deduplicate events (keep latest registration for each ID)
                 const idMap = new Map();
+                const idList = [];
                 events.forEach(event => {
                     try {
                         if (event && event.args) {
-                            console.log(event.args);
-                            const id = event.args.id?.toString();
+                            console.log(event.args.id?.hash);
+                            const id = event.args.id?.hash.toString();
                             const ethereum = event.args.ethereum?.toString();
                             const polygon = event.args.polygon?.toString();
 
-                            if (id && ethereum && polygon) {
-                                idMap.set(id, {
+                            if (id && (ethereum || polygon)) {
+                                idList.push({
                                     id,
                                     ethereum,
                                     polygon,
@@ -50,13 +51,9 @@ function RegisteredIDs({ provider }) {
                         console.error('Error processing event:', err);
                     }
                 });
-
                 // Convert map to array and sort by block number (most recent first)
-                const ids = Array.from(idMap.values())
-                    .filter(id => id && typeof id.id === 'string')
-                    .sort((a, b) => (b.blockNumber || 0) - (a.blockNumber || 0));
 
-                setRegisteredIds(ids);
+                setRegisteredIds(idList);
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching registered IDs:', err);
