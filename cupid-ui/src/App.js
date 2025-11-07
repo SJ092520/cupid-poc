@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import CupidPaymentABI from "./CupidPayment.json";
+import CupidRegistryABI from "./CupidRegistry.json";
 import RegisteredIDs from "./RegisteredIDs";
 import RegisterCupidID from "./RegisterCupidID";
 import Settings from "./Settings";
 import RequestPayment from "./RequestPayment";
 import PaymentRequests from "./PaymentRequests";
+import "./styles.css";
 
 function App() {
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -19,6 +21,8 @@ function App() {
   const [connected, setConnected] = useState(false);
 
   const AMOY_CHAIN_ID = "0x13882"; // Amoy testnet chain ID (80002 in hex)
+  const REGISTRY_ADDRESS = "0x28ae9184FE0dB8043c46BABA7B0F5537Ef006936"; // Registry contract address
+  const PAYMENT_ADDRESS = "0xFFCdb0585811ac285611e78B3b4448EFf30077ab"; // Payment contract address
 
   // Initialize provider when MetaMask is available
   useEffect(() => {
@@ -99,16 +103,108 @@ function App() {
       await checkAndSwitchNetwork(provider);
 
       const signer = provider.getSigner();
-      const contractAddress = "0xFFCdb0585811ac285611e78B3b4448EFf30077ab";
-      const contract = new ethers.Contract(contractAddress, CupidPaymentABI.abi, signer);
+      const userAddress = await signer.getAddress();
+      console.log("Sender address:", userAddress);
 
-      // Use receiverId and amount from either manual input or selected request
-      const paymentReceiverId = selectedRequest ? selectedRequest.toId : receiverId;
+      // Get the ID and amount from either the selected request or manual input
+      let paymentReceiverId = selectedRequest ? selectedRequest.toId : receiverId;
       const paymentAmount = selectedRequest ? selectedRequest.amount : amount;
 
-      const tx = await contract.sendPayment(paymentReceiverId, "polygon", {
-        value: ethers.utils.parseEther(paymentAmount.toString())
+      // Format CUPID ID - remove @ if present at the start
+      // if (paymentReceiverId.startsWith('@')) {
+      //   paymentReceiverId = paymentReceiverId.substring(1);
+      // }
+      // // Remove @cupid if present at the end
+      // if (paymentReceiverId.endsWith('@cupid')) {
+      //   paymentReceiverId = paymentReceiverId.slice(0, -6);
+      // }
+
+      console.log("Attempting to send payment to CUPID ID:", paymentReceiverId);
+
+      // First validate the CUPID ID using the registry contract
+      const registryContract = new ethers.Contract(
+        REGISTRY_ADDRESS,
+        CupidRegistryABI.abi,
+        provider
+      );
+
+      // Validate CUPID ID before proceeding with payment
+      try {
+        if (!paymentReceiverId) {
+          throw new Error("CUPID ID cannot be empty");
+        }
+
+        console.log("Registry Contract Address:", REGISTRY_ADDRESS);
+        console.log("Checking CUPID ID:", paymentReceiverId);
+
+        // Try to get network first
+        const network = await provider.getNetwork();
+        console.log("Current network:", network);
+
+        // Check contract code exists at address
+        const code = await provider.getCode(REGISTRY_ADDRESS);
+        if (code === '0x') {
+          throw new Error('No contract code found at registry address');
+        }
+
+        // Try to resolve the address
+        try {
+          const resolvedAddress = await registryContract.resolve(paymentReceiverId, "polygon");
+          console.log("Resolved address:", resolvedAddress);
+
+          if (!resolvedAddress || resolvedAddress === "0x0000000000000000000000000000000000000000") {
+            throw new Error(`CUPID ID ${paymentReceiverId} is not registered`);
+          }
+        } catch (resolveError) {
+          console.error("Resolve error:", resolveError);
+          throw new Error(`Failed to resolve CUPID ID: ${resolveError.message}`);
+        }
+      } catch (error) {
+        console.error("Registry error:", error);
+        setError(error.message || "Failed to validate CUPID ID");
+        setLoading(false);
+        return;
+      }
+
+      // Set up payment contract
+      console.log("Payment Contract Address:", PAYMENT_ADDRESS);
+
+      // Check contract code exists at address
+      const paymentCode = await provider.getCode(PAYMENT_ADDRESS);
+      if (paymentCode === '0x') {
+        throw new Error('No contract code found at payment contract address');
+      }
+
+      const paymentContract = new ethers.Contract(PAYMENT_ADDRESS, CupidPaymentABI.abi, signer);
+      console.log("Payment contract instance created");
+
+      // Convert the amount to Wei
+      const amountInWei = ethers.utils.parseEther(paymentAmount.toString());
+      console.log("Amount in Wei:", amountInWei.toString());
+
+      // Try to estimate gas first
+      const gasEstimate = await paymentContract.estimateGas.sendPayment(
+        paymentReceiverId,
+        "polygon",
+        { value: amountInWei }
+      );
+      console.log("Estimated gas:", gasEstimate.toString());
+
+      // Add 20% buffer to gas estimate
+      const gasLimit = gasEstimate.mul(120).div(100);
+      console.log("Gas limit with buffer:", gasLimit.toString());
+
+      // Try to send the payment
+      const tx = await paymentContract.sendPayment(paymentReceiverId, "polygon", {
+        value: amountInWei,
+        gasLimit: gasLimit
       });
+
+      console.log("Transaction sent:", tx.hash);
+
+      // Wait for transaction confirmation
+      const receipt = await tx.wait();
+      console.log("Transaction confirmed:", receipt);
 
       await tx.wait();
 
@@ -133,62 +229,57 @@ function App() {
       alert("Payment sent! Transaction hash: " + tx.hash);
     } catch (err) {
       console.error(err);
-      // Convert error object to string message
-      const errorMessage = typeof err === 'string' ? err : err?.message || err?.reason || JSON.stringify(err) || "Failed to send payment";
-      setError(errorMessage);
+
+      // Handle specific error cases
+      if (err.code === 'ACTION_REJECTED') {
+        setError("Transaction was cancelled in MetaMask");
+      } else if (err.code === 'INSUFFICIENT_FUNDS') {
+        setError("Insufficient funds to complete the transaction");
+      } else if (err.code === 'NETWORK_ERROR') {
+        setError("Network error. Please check your connection and try again");
+      } else {
+        // For other errors, try to get a meaningful message
+        const errorMessage = err.reason || err.message || "Failed to send payment";
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="container">
       <h2>💘 CUPID Testnet Demo</h2>
 
-      <div style={{ marginBottom: 24 }}>
+      <div className="mb-16">
         <button
           onClick={() => setCurrentView("send")}
-          style={{
-            marginRight: 8,
-            background: currentView === "send" ? "#e0e0e0" : "transparent",
-            padding: "8px 16px"
-          }}
+          className={currentView === "send" ? "active" : ""}
         >
           Send Payment
         </button>
         <button
           onClick={() => setCurrentView("request")}
-          style={{
-            marginRight: 8,
-            background: currentView === "request" ? "#e0e0e0" : "transparent",
-            padding: "8px 16px"
-          }}
+          className={currentView === "request" ? "active" : ""}
         >
           Request Payment
         </button>
         <button
           onClick={() => setCurrentView("register")}
-          style={{
-            marginRight: 8,
-            background: currentView === "register" ? "#e0e0e0" : "transparent",
-            padding: "8px 16px"
-          }}
+          className={currentView === "register" ? "active" : ""}
         >
           Register ID
         </button>
         <button
           onClick={() => setCurrentView("settings")}
-          style={{
-            background: currentView === "settings" ? "#e0e0e0" : "transparent",
-            padding: "8px 16px"
-          }}
+          className={currentView === "settings" ? "active" : ""}
         >
           Settings
         </button>
       </div>
 
       {error && (
-        <div style={{ color: "red", marginBottom: 16 }}>
+        <div className="error-message">
           Error: {error}
         </div>
       )}

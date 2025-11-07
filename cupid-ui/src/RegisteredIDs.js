@@ -32,6 +32,7 @@ function RegisteredIDs({ provider }) {
                 events.forEach(event => {
                     try {
                         if (event && event.args) {
+                            console.log(event.args);
                             const id = event.args.id?.toString();
                             const ethereum = event.args.ethereum?.toString();
                             const polygon = event.args.polygon?.toString();
